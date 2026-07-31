@@ -1,8 +1,23 @@
-# 🎬 OpenSource Clipping
+<br />
+<div align="center">
+  <a href="https://github.com/NaufalRizqullah/opensource-clipping">
+    <img src="assets/images/opensource-clipping-logo-editable.svg" alt="Logo" width="350">
+  </a>
 
-**Ultimate AI Auto-Clipper & Teaser Generator** — proyek open-source yang mengubah video panjang menjadi highlight pendek bergaya sinematik, lengkap dengan hook teaser, subtitle karaoke, dan thumbnail otomatis.
+  <h3 align="center">OpenSource Clipping</h3>
 
-> 🇬🇧 [Read in English](README.md)
+  <p align="center">
+    <strong>Ultimate AI Auto-Clipper & Teaser Generator</strong><br>
+    Proyek open-source yang mengubah video panjang menjadi highlight pendek bergaya sinematik, lengkap dengan hook teaser, subtitle karaoke, dan thumbnail otomatis.
+    <br />
+    <br />
+    <a href="README.md">🇬🇧 Read in English</a>
+    &middot;
+    <a href="https://github.com/NaufalRizqullah/opensource-clipping/issues/new">Laporkan Bug</a>
+    &middot;
+    <a href="https://github.com/NaufalRizqullah/opensource-clipping/issues/new">Minta Fitur Baru</a>
+  </p>
+</div>
 
 ---
 
