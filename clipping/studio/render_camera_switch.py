@@ -719,7 +719,7 @@ def buat_video_camera_switch(
 
             # --- WATERMARK OVERLAY ---
             if getattr(cfg, "watermark_enabled", False):
-                from . import watermark as _wm_mod
+                _wm_mod = _load_studio_internal_module("watermark.py", "clipping_studio_watermark")
                 out_frame = _wm_mod.apply_watermark(out_frame, cfg)
 
             tracking_log.append((t, cx))

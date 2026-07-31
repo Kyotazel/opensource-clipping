@@ -479,7 +479,7 @@ def buat_video_hybrid(
 
             # --- 4. WATERMARK OVERLAY ---
             if getattr(cfg, "watermark_enabled", False):
-                from . import watermark as _wm_mod
+                _wm_mod = _load_studio_internal_module("watermark.py", "clipping_studio_watermark")
                 frame_terpilih = _wm_mod.apply_watermark(frame_terpilih, cfg)
 
             # --- 5. OUTPUT WRITING AND MERGING ---
