@@ -8,6 +8,18 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.11.0] - 2026-07-31
+
+### Added
+- **Watermark Feature**: Added support for customizable text watermarks overlaid on all rendered clips across all modes (Hybrid, Split-Screen, Camera-Switch).
+  - Configurable text via `--text "Your Watermark"`.
+  - Configurable position (`--position`) with 9 standard alignments (e.g., `center-right`, `top-left`).
+  - Configurable padding from edges (`--padding`) and opacity (`--opacity`).
+  - Auto-scaling font size with manual override via `--watermark-font-size`.
+  - Built with a modular engine `clipping/studio/watermark.py` to support future image watermark capabilities.
+
+---
+
 ## [v1.10.4] - 2026-07-20
 
 ### Added

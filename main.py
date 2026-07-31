@@ -16,7 +16,7 @@ from clipping.config import build_config
 def main():
     cfg = build_config(sys.argv[1:])
 
-    version = "1.0.7"
+    version = "1.11.0"
 
     # ── Story Clip Mode ──────────────────────────────────────────────
     if getattr(cfg, "story_mode", False):
@@ -74,6 +74,13 @@ def main():
         print(f"   Split Trigger: {cfg.split_trigger}")
     print(f"   Whisper     : {cfg.whisper_model} ({cfg.whisper_device})")
     print(f"   Gemini      : {cfg.gemini_model}")
+    if getattr(cfg, "watermark_enabled", False):
+        wm_type = "Text" if cfg.watermark_text else "Image"
+        wm_content = cfg.watermark_text or cfg.watermark_image or "-"
+        print(f"   Watermark   : ON ({wm_type}: {wm_content})")
+        print(f"   WM Opacity  : {cfg.watermark_opacity}%")
+        print(f"   WM Position : {cfg.watermark_position}")
+        print(f"   WM Padding  : {cfg.watermark_padding}px")
     print("=" * 70)
 
     run_pipeline(cfg)

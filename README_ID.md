@@ -21,6 +21,7 @@
 | **Smart Segment Trimming** | AI dinamis memotong bagian kosong/membosankan di tengah video untuk pacing cepat |
 | **Auto-BGM & Ducking** | Musik latar otomatis dari koleksi lokal (`assets/bgm/`) dengan 2 mode: *sidechain ducking* (volume BGM otomatis turun saat bicara) atau *background* (volume konstan). File MP3 di-loop otomatis jika lebih pendek dari video |
 | **Auto-Thumbnail** | Ekstraksi frame dengan overlay gelap dan teks judul besar |
+| **Watermark Engine** | Teks watermark kustom dengan posisi yang dapat diatur (9 posisi), padding, opacity, dan ukuran font dinamis |
 | **Metadata Lintas Platform** | Judul/deskripsi/tag YouTube + caption TikTok — semua dalam Bahasa Inggris |
 | **Auto YouTube Uploader** | Upload klip highlight beserta metadata ke YouTube secara otomatis dengan penjadwalan (opsional) |
 | **Auto Facebook Reels Uploader** | Upload Reels ke Facebook Pages via Meta Graph API dengan penjadwalan otomatis — klip pertama langsung publish, klip berikutnya dijadwalkan otomatis dengan interval yang bisa dikonfigurasi (opsional) |
@@ -217,6 +218,12 @@ python main.py --help
 | `--bgm-mode` | `ducking` | Mode mixing BGM: `ducking` (sidechain compress — volume BGM otomatis turun saat bicara) atau `background` (volume konstan rendah) |
 | `--edge-glow` | `False` | Terapkan efek ambient edge glow ke seluruh output video (hook, klip, broll, voiceover). Secara default, glow hanya muncul pada intro voice-over. |
 | `--edge-glow-mode` | `smooth` | Strategi render edge glow: `default` (original 10s loop, bisa patah di titik loop), `smooth` (10s loop dengan auto-adjusted speed agar seamless), `full` (render full durasi tanpa loop, lebih berat tapi anti-patah). |
+| `--watermark` | `False` | Aktifkan watermark pada klip hasil render |
+| `--text` | `None` | Teks watermark (contoh: 'Nama Channel') |
+| `--opacity` | `70` | Transparansi watermark (1-100%) |
+| `--position` | `center-right`| Posisi watermark (9 pilihan: `top-left`, `center-right`, dll.) |
+| `--padding` | `0` | Jarak watermark dari sisi layar dalam pixel |
+| `--watermark-font-size` | `0` | Ukuran font teks watermark (0 = otomatis ~3% tinggi frame) |
 | `--no-subs` | — | Nonaktifkan semua rendering subtitle |
 | `--no-karaoke` | — | Gunakan teks biasa tanpa highlight karaoke |
 | `--advanced-text` | `False` | Aktifkan typografi kinetik (skala kata & animasi pop) |

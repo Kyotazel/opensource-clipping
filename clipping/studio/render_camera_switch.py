@@ -717,6 +717,11 @@ def buat_video_camera_switch(
                             out_frame = cv2.addWeighted(frame_b_zoomed, alpha, out_frame, 1.0 - alpha, 0)
                     break
 
+            # --- WATERMARK OVERLAY ---
+            if getattr(cfg, "watermark_enabled", False):
+                from . import watermark as _wm_mod
+                out_frame = _wm_mod.apply_watermark(out_frame, cfg)
+
             tracking_log.append((t, cx))
             writer.stdin.write(out_frame.tobytes())
             frame_count += 1

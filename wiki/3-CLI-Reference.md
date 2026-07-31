@@ -85,6 +85,20 @@ Complete reference for all command-line arguments. Run `python main.py --help` f
 
 ---
 
+## Watermark Settings
+
+| Argument | Default | Description |
+|---|---|---|
+| `--watermark` | `False` | Enable watermark overlay on rendered clips |
+| `--text` | `None` | Watermark text to overlay (e.g. 'Channel Name') |
+| `--image` | `None` | Path to watermark image (Not implemented yet) |
+| `--opacity` | `70` | Watermark opacity in percent (1-100) |
+| `--position` | `center-right`| Watermark position (9 anchors: `top-left`, `center-right`, etc.) |
+| `--padding` | `0` | Watermark padding from the nearest edge in pixels |
+| `--watermark-font-size` | `0` | Watermark font size in pixels (0 = auto ~3% frame height) |
+
+---
+
 ## Podcast / Split-Screen
 
 | Argument | Default | Description |

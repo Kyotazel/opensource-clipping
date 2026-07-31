@@ -477,7 +477,12 @@ def buat_video_hybrid(
                             frame_terpilih = cv2.addWeighted(frame_b_zoomed, alpha, frame_terpilih, 1.0 - alpha, 0)
                     break
 
-            # --- 4. OUTPUT WRITING AND MERGING ---
+            # --- 4. WATERMARK OVERLAY ---
+            if getattr(cfg, "watermark_enabled", False):
+                from . import watermark as _wm_mod
+                frame_terpilih = _wm_mod.apply_watermark(frame_terpilih, cfg)
+
+            # --- 5. OUTPUT WRITING AND MERGING ---
             if merge_output:
                 frm_normal_small = _resize_frame(frame_terpilih, (608, 1080))
                 frm_merged = np.full((1220, 2648, 3), 30, dtype=np.uint8)

@@ -1010,6 +1010,11 @@ def buat_video_split_screen(
                             final_frame = cv2.addWeighted(frame_b_zoomed, alpha, final_frame, 1.0 - alpha, 0)
                     break
             
+            # --- WATERMARK OVERLAY ---
+            if getattr(cfg, "watermark_enabled", False):
+                from . import watermark as _wm_mod
+                final_frame = _wm_mod.apply_watermark(final_frame, cfg)
+
             if dev_visualize:
                 # --- DIRECTOR'S CONSOLE (DEV MODE) ---
                 # UI Constants

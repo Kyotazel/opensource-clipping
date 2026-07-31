@@ -679,6 +679,53 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
 
+    # --- Watermark ---
+    wm_group = p.add_argument_group("Watermark")
+    wm_group.add_argument(
+        "--watermark",
+        action="store_true",
+        default=False,
+        help="Enable watermark overlay on rendered clips.",
+    )
+    wm_group.add_argument(
+        "--text",
+        default=None,
+        help="Watermark text to overlay (e.g. 'Channel Name').",
+    )
+    wm_group.add_argument(
+        "--image",
+        default=None,
+        help="Path to watermark image file (PNG recommended). Not yet implemented.",
+    )
+    wm_group.add_argument(
+        "--opacity",
+        type=int,
+        default=70,
+        help="Watermark opacity in percent (1-100). Default: 70.",
+    )
+    wm_group.add_argument(
+        "--position",
+        default="center-right",
+        choices=[
+            "top-left", "top-center", "top-right",
+            "center-left", "center", "center-right",
+            "bottom-left", "bottom-center", "bottom-right",
+        ],
+        help="Watermark position on the video frame.",
+    )
+    wm_group.add_argument(
+        "--padding",
+        type=int,
+        default=0,
+        help="Watermark padding from the nearest edge in pixels.",
+    )
+    wm_group.add_argument(
+        "--watermark-font-size",
+        type=int,
+        default=0,
+        help="Watermark font size in pixels. 0 = auto (3%% of frame height).",
+    )
+
     return p
 
 
@@ -690,6 +737,19 @@ def build_config(argv: list[str] | None = None) -> SimpleNamespace:
     # Validate: --url is required unless --story-mode is used
     if not args.story_mode and not args.url:
         parser.error("--url is required unless --story-mode is used.")
+
+    # Validate watermark args
+    if args.watermark:
+        if not args.text and not args.image:
+            parser.error("--watermark membutuhkan --text atau --image.")
+        if not (1 <= args.opacity <= 100):
+            parser.error(f"--opacity harus antara 1-100, diberikan: {args.opacity}")
+        if args.padding < 0:
+            parser.error(f"--padding tidak boleh negatif, diberikan: {args.padding}")
+        if args.watermark_font_size < 0:
+            parser.error(f"--watermark-font-size tidak boleh negatif, diberikan: {args.watermark_font_size}")
+        if args.image and not os.path.exists(args.image):
+            parser.error(f"File watermark image tidak ditemukan: {args.image}")
 
     base_dir = os.getcwd()
     outputs_dir = os.path.abspath(os.path.join(base_dir, "outputs"))
@@ -833,6 +893,14 @@ def build_config(argv: list[str] | None = None) -> SimpleNamespace:
         original_volume=args.original_volume,
         edge_glow=args.edge_glow,
         edge_glow_mode=args.edge_glow_mode,
+        # Watermark
+        watermark_enabled=args.watermark,
+        watermark_text=args.text,
+        watermark_image=args.image,
+        watermark_opacity=args.opacity,
+        watermark_position=args.position,
+        watermark_padding=args.padding,
+        watermark_font_size=args.watermark_font_size,
     )
 
     return cfg
