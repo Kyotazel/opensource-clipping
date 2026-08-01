@@ -310,9 +310,15 @@
     const stats = data.stats || {};
 
     let html = `
-      <div class="page-header">
-        <h2>Dashboard</h2>
-        <p class="page-subtitle">Local YouTube playlist snapshot tracker</p>
+      <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2>Dashboard</h2>
+          <p class="page-subtitle">Local YouTube playlist snapshot tracker</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn btn-secondary btn-sm" onclick="window._pullAllPlaylists()">🔄 Pull All</button>
+          <button class="btn btn-primary btn-sm" style="background-color: var(--color-candidate);" onclick="window._pullAllLatestPlaylists()">⚡ Pull All Latest</button>
+        </div>
       </div>
 
       <div class="stats-grid">
@@ -439,9 +445,15 @@
     const sources = (data.sources || []).filter(s => s.source_type === 'playlist');
 
     let html = `
-      <div class="page-header">
-        <h2>Playlists</h2>
-        <p class="page-subtitle">Tracked YouTube playlists</p>
+      <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2>Playlists</h2>
+          <p class="page-subtitle">Tracked YouTube playlists</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn btn-secondary btn-sm" onclick="window._pullAllPlaylists()">🔄 Pull All</button>
+          <button class="btn btn-primary btn-sm" style="background-color: var(--color-candidate);" onclick="window._pullAllLatestPlaylists()">⚡ Pull All Latest</button>
+        </div>
       </div>
 
       <div class="source-grid" id="source-grid">`;
@@ -1495,6 +1507,48 @@
       if (btn) {
         btn.disabled = false;
         btn.textContent = '⚡ Pull Latest';
+      }
+    }
+  };
+
+  window._pullAllPlaylists = async () => {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Pulling All...';
+    try {
+      const result = await api(`/api/sources/refresh_all`, { method: 'POST' });
+      if (result.status === 'running') {
+        toast('Bulk pull started in background.', 'success');
+        pollProgress();
+      }
+    } catch (err) {
+      toast(`Bulk pull failed: ${err.message}`, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+  };
+
+  window._pullAllLatestPlaylists = async () => {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Pulling All...';
+    try {
+      const result = await api(`/api/sources/refresh_all_latest`, { method: 'POST' });
+      if (result.status === 'running') {
+        toast('Bulk fast pull started in background.', 'success');
+        pollProgress();
+      }
+    } catch (err) {
+      toast(`Bulk fast pull failed: ${err.message}`, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
     }
   };

@@ -383,6 +383,30 @@ class TrackerHandler(BaseHTTPRequestHandler):
                 traceback.print_exc()
                 return self._send_error_json(500, f"Failed to start fetch: {str(e)}")
 
+        # Refresh All Playlists
+        m = re.match(r'^/api/sources/refresh_all$', path)
+        if m:
+            sources = db.get_sources()
+            for s in sources:
+                if s.get("source_type") == "playlist" and s.get("url"):
+                    try:
+                        _start_async_pull(s["url"], s["id"])
+                    except Exception as e:
+                        print(f"Failed to start async pull for {s['id']}: {e}")
+            return self._send_json({"ok": True, "status": "running"}, 202)
+
+        # Fast Refresh / Pull All Latest
+        m = re.match(r'^/api/sources/refresh_all_latest$', path)
+        if m:
+            sources = db.get_sources()
+            for s in sources:
+                if s.get("source_type") == "playlist" and s.get("url"):
+                    try:
+                        _start_async_pull(s["url"], s["id"], fast_mode=True)
+                    except Exception as e:
+                        print(f"Failed to start async fast pull for {s['id']}: {e}")
+            return self._send_json({"ok": True, "status": "running"}, 202)
+
         # Refresh/Pull Again
         m = re.match(r'^/api/sources/(\d+)/refresh$', path)
         if m:
