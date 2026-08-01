@@ -8,6 +8,13 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.13.2] - 2026-08-01
+
+### Fixed
+- **Web API BGM Import Error**: Fixed a breaking `ImportError` in `web/api/config_adapter.py` that caused the FastAPI server to fail on startup. Synchronized the API imports with the latest BGM refactoring in `clipping/config.py` (replaced `BGM_POOL` with `BGM_MODE`, `BGM_MOODS`, and `BGM_DIR`).
+
+---
+
 ## [v1.13.1] - 2026-08-01
 
 ### Fixed
