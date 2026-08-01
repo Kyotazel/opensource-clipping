@@ -108,6 +108,40 @@ WHISPER_COMPUTE_TYPE = "float32"
 
 ---
 
+## 🎬 Web Studio (GitHub Pages + Remote GPU)
+
+**Clipping Studio** adalah dashboard berbasis browser yang di-hosting gratis di **GitHub Pages** dan terhubung ke notebook Kaggle/Colab sebagai backend — memberikan GUI lengkap untuk mengontrol pipeline AI clipping tanpa setup lokal.
+
+**🔗 Buka Studio:** [naufalrizqullah.github.io/opensource-clipping/studio/](https://naufalrizqullah.github.io/opensource-clipping/studio/)
+
+### Cara Kerja
+
+```
+┌─────────────────────┐     HTTPS (ngrok)     ┌──────────────────────────┐
+│   GitHub Pages      │ ◄──────────────────►   │   Kaggle / Colab         │
+│   (Frontend Statis) │                        │   (FastAPI + GPU)        │
+│                     │   POST /api/jobs       │                          │
+│   studio/index.html │ ────────────────────►  │   web/api/app.py         │
+│   studio/new-job    │   GET  /api/jobs/:id   │   pipeline clipping      │
+│   studio/settings   │ ◄────────────────────  │   Whisper + Gemini       │
+└─────────────────────┘                        └──────────────────────────┘
+        GRATIS                                         GRATIS (GPU)
+```
+
+### Cara Pakai
+
+1. **Jalankan backend** — Buka `notebooks/Kaggle_Studio_Server.ipynb` di Kaggle (atau Colab), tambahkan API key ke Secrets, lalu run semua cell. Salin **Public URL** dari output.
+
+2. **Buka Studio** — Kunjungi [halaman Studio](https://naufalrizqullah.github.io/opensource-clipping/studio/) di browser.
+
+3. **Connect** — Klik tombol **Connect** di sidebar, paste URL tunnel, lalu klik **Test & Connect**.
+
+4. **Buat job** — Masuk ke **New Job**, masukkan URL YouTube, atur konfigurasi clip, dan klik **Start Clipping**. Pantau progress secara real-time dari Dashboard.
+
+> **Catatan:** URL tunnel berubah setiap kali notebook di-restart. Studio menyimpan URL terakhir di `localStorage` untuk kemudahan, namun perlu diupdate setelah setiap sesi baru.
+
+---
+
 ## 🚀 Cara Cepat (Lokal)
 
 ```bash

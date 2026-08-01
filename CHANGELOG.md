@@ -8,6 +8,23 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.13.0] - 2026-08-01
+
+### Added
+- **Web Studio (GitHub Pages + Remote GPU)**: A full browser-based Clipping Studio dashboard hosted on GitHub Pages that connects to a Kaggle/Colab notebook backend via ngrok tunnel.
+  - **Dashboard** (`pages/studio/index.html`): Real-time job overview with stats cards (total jobs, completed, total clips, system status), job list with status badges, and auto-polling.
+  - **New Job** (`pages/studio/new-job.html`): Full job creation form with URL/Reuse mode toggle, platform selector, clip count, aspect ratio, font style, AI provider, Whisper model, device selection, and 9 feature toggles (B-Roll, Hook Glitch, BGM, Karaoke, Hook V2, Silence Trim, YouTube Subs, No Subs, Bypass AI).
+  - **Job Detail** (`pages/studio/job.html`): Real-time progress tracking via SSE + polling fallback, step indicators (Download → Transcribe → AI Analysis → Metadata → Render → Done), clip results with video preview and download links, and activity log viewer.
+  - **Settings** (`pages/studio/settings.html`): API key management (Google Gemini, Pexels, HuggingFace, NVIDIA) with show/hide toggle, system info display (GPU, Whisper model, AI provider), and connection management.
+  - **Connect Modal**: Paste tunnel URL, test connection with health check, auto-save to localStorage.
+  - **Shared API Client** (`pages/studio/api.js`): IIFE module handling all backend communication — no build tools required.
+  - **Kaggle Notebook** (`notebooks/Kaggle_Studio_Server.ipynb`): Ready-to-run notebook that starts the FastAPI backend and creates an ngrok tunnel. Compatible with both Kaggle Secrets and Colab userdata.
+  - **Design**: Pure HTML/CSS/JS with Tailwind CDN, Inter/Outfit fonts, Lucide icons, glassmorphism cards, light/dark mode toggle, responsive sidebar layout, and smooth micro-animations.
+  - Added `https://naufalrizqullah.github.io` to CORS origins in `web/api/app.py`.
+  - Added "🎬 Clipping Studio" navigation link and "Open Studio" button to landing page (`pages/index.html`).
+
+---
+
 ## [v1.12.0] - 2026-08-01
 
 ### Added

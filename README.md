@@ -108,6 +108,40 @@ WHISPER_COMPUTE_TYPE = "float32"
 
 ---
 
+## 🎬 Web Studio (GitHub Pages + Remote GPU)
+
+The **Clipping Studio** is a browser-based dashboard hosted for free on **GitHub Pages** that connects to a Kaggle/Colab notebook as its backend — giving you a full GUI to control the AI clipping pipeline without any local setup.
+
+**🔗 Open Studio:** [naufalrizqullah.github.io/opensource-clipping/studio/](https://naufalrizqullah.github.io/opensource-clipping/studio/)
+
+### How It Works
+
+```
+┌─────────────────────┐     HTTPS (ngrok)     ┌──────────────────────────┐
+│   GitHub Pages      │ ◄──────────────────►   │   Kaggle / Colab         │
+│   (Static Frontend) │                        │   (FastAPI + GPU)        │
+│                     │   POST /api/jobs       │                          │
+│   studio/index.html │ ────────────────────►  │   web/api/app.py         │
+│   studio/new-job    │   GET  /api/jobs/:id   │   clipping pipeline      │
+│   studio/settings   │ ◄────────────────────  │   Whisper + Gemini       │
+└─────────────────────┘                        └──────────────────────────┘
+        FREE                                           FREE (GPU)
+```
+
+### Quick Start
+
+1. **Start the backend** — Open `notebooks/Kaggle_Studio_Server.ipynb` in Kaggle (or Colab), add your API keys to Secrets, and run all cells. Copy the **Public URL** from the output.
+
+2. **Open the Studio** — Visit [the Studio page](https://naufalrizqullah.github.io/opensource-clipping/studio/) in your browser.
+
+3. **Connect** — Click the **Connect** button in the sidebar, paste the tunnel URL, and click **Test & Connect**.
+
+4. **Create a job** — Go to **New Job**, enter a YouTube URL, configure your clip settings, and hit **Start Clipping**. Monitor progress in real-time from the Dashboard.
+
+> **Note:** The tunnel URL changes each time the notebook restarts. The Studio saves your last URL in `localStorage` for convenience, but you'll need to update it after each new session.
+
+---
+
 ## 🚀 Local Quick Start
 
 ```bash
