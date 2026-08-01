@@ -8,6 +8,14 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.13.3] - 2026-08-01
+
+### Fixed
+- **Web Studio Ngrok Block**: Added the `ngrok-skip-browser-warning: true` header to all `fetch` requests in `docs/studio/api.js` to automatically bypass the ngrok free-tier warning page that previously broke the API client.
+- **Kaggle Server Event Loop Crash**: Modified `notebooks/Kaggle_Studio_Server.ipynb` to launch Uvicorn safely within Jupyter's existing asyncio event loop using `await server.serve()`, and removed the background threading and redundant status checks. The server now runs in the foreground reliably without throwing `RuntimeError`.
+
+---
+
 ## [v1.13.2] - 2026-08-01
 
 ### Fixed
