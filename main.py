@@ -16,7 +16,7 @@ from clipping.config import build_config
 def main():
     cfg = build_config(sys.argv[1:])
 
-    version = "1.11.0"
+    version = "1.12.0"
 
     # ── Story Clip Mode ──────────────────────────────────────────────
     if getattr(cfg, "story_mode", False):
@@ -81,6 +81,8 @@ def main():
         print(f"   WM Opacity  : {cfg.watermark_opacity}%")
         print(f"   WM Position : {cfg.watermark_position}")
         print(f"   WM Padding  : {cfg.watermark_padding}px")
+        if cfg.watermark_image:
+            print(f"   WM Scale    : {getattr(cfg, 'watermark_scale', 15)}% of frame height")
     print("=" * 70)
 
     run_pipeline(cfg)

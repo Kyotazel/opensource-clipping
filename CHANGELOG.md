@@ -8,6 +8,20 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.12.0] - 2026-08-01
+
+### Added
+- **Image Watermark Support**: The watermark engine now fully supports image-based watermarks in addition to text watermarks.
+  - Supported formats: **PNG** (with alpha transparency), **JPG**, **JPEG**, **WEBP**, **BMP**, **TIFF**.
+  - Auto-scaling via `--watermark-scale` (default: 15% of frame height) with aspect ratio preservation.
+  - Transparent PNG files render with proper alpha blending — ideal for logos and branding.
+  - Non-alpha images (JPG) are automatically converted to RGBA for consistent compositing.
+  - Image is loaded and converted once, then cached per frame-size for optimal per-frame performance.
+  - File format validation at CLI parse time with clear error messages.
+  - Usage: `--watermark --image "logo.png" --position top-right --padding 20 --opacity 50 --watermark-scale 10`
+
+---
+
 ## [v1.11.0] - 2026-07-31
 
 ### Added

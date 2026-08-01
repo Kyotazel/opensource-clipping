@@ -695,7 +695,7 @@ def _build_parser() -> argparse.ArgumentParser:
     wm_group.add_argument(
         "--image",
         default=None,
-        help="Path to watermark image file (PNG recommended). Not yet implemented.",
+        help="Path to watermark image file (supports PNG, JPG, JPEG, WEBP). PNG with transparency recommended.",
     )
     wm_group.add_argument(
         "--opacity",
@@ -725,6 +725,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default=0,
         help="Watermark font size in pixels. 0 = auto (3%% of frame height).",
     )
+    wm_group.add_argument(
+        "--watermark-scale",
+        type=int,
+        default=15,
+        help="Watermark image height as %% of frame height (1-100). Default: 15.",
+    )
 
     return p
 
@@ -748,8 +754,17 @@ def build_config(argv: list[str] | None = None) -> SimpleNamespace:
             parser.error(f"--padding tidak boleh negatif, diberikan: {args.padding}")
         if args.watermark_font_size < 0:
             parser.error(f"--watermark-font-size tidak boleh negatif, diberikan: {args.watermark_font_size}")
-        if args.image and not os.path.exists(args.image):
-            parser.error(f"File watermark image tidak ditemukan: {args.image}")
+        if not (1 <= args.watermark_scale <= 100):
+            parser.error(f"--watermark-scale harus antara 1-100, diberikan: {args.watermark_scale}")
+        if args.image:
+            if not os.path.exists(args.image):
+                parser.error(f"File watermark image tidak ditemukan: {args.image}")
+            valid_exts = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff")
+            if not args.image.lower().endswith(valid_exts):
+                parser.error(
+                    f"Format file watermark image tidak didukung: {args.image}. "
+                    f"Format yang didukung: {', '.join(valid_exts)}"
+                )
 
     base_dir = os.getcwd()
     outputs_dir = os.path.abspath(os.path.join(base_dir, "outputs"))
@@ -901,6 +916,7 @@ def build_config(argv: list[str] | None = None) -> SimpleNamespace:
         watermark_position=args.position,
         watermark_padding=args.padding,
         watermark_font_size=args.watermark_font_size,
+        watermark_scale=args.watermark_scale,
     )
 
     return cfg

@@ -36,7 +36,7 @@
 | **Smart Segment Trimming** | AI dynamically selects the best segments to cut out boring/silent parts |
 | **Auto-BGM & Ducking** | Local BGM asset pool (`assets/bgm/`) with 2 modes: *sidechain ducking* (BGM auto-lowers during speech) or *background* (constant low volume). MP3 files auto-loop if shorter than the video |
 | **Auto-Thumbnail** | Frame extraction with dark overlay and large title text |
-| **Watermark Engine** | Customizable text watermarks with adjustable position (9 anchors), padding, opacity, and auto-scaling |
+| **Watermark Engine** | Text & image watermarks with adjustable position (9 anchors), padding, opacity, and auto-scaling |
 | **Cross-Platform Metadata** | YouTube title/description/tags + TikTok caption — all in English |
 | **Auto YouTube Uploader** | Automatically upload highlight clips to YouTube with scheduling support and full metadata (optional) |
 | **Auto Facebook Reels Uploader** | Upload Reels to Facebook Pages via Meta Graph API with smart scheduling — first clip publishes immediately, subsequent clips auto-schedule at configurable intervals (optional) |
@@ -235,10 +235,12 @@ python main.py --help
 | `--edge-glow-mode` | `smooth` | Edge glow rendering strategy: `default` (original 10s loop, may stutter at loop points), `smooth` (10s loop with auto-adjusted speed for seamless loop), `full` (renders full duration, heavier but zero stutter). |
 | `--watermark` | `False` | Enable watermark overlay on rendered clips |
 | `--text` | `None` | Watermark text to overlay (e.g. 'Channel Name') |
+| `--image` | `None` | Path to watermark image (PNG with alpha recommended, also supports JPG, JPEG, WEBP) |
 | `--opacity` | `70` | Watermark opacity in percent (1-100) |
 | `--position` | `center-right`| Watermark position (9 anchors: `top-left`, `center-right`, etc.) |
 | `--padding` | `0` | Watermark padding from the nearest edge in pixels |
 | `--watermark-font-size` | `0` | Watermark font size in pixels (0 = auto ~3% frame height) |
+| `--watermark-scale` | `15` | Watermark image height as % of frame height (1-100) |
 | `--no-subs` | — | Disable all subtitle rendering |
 | `--no-karaoke` | — | Use clean text instead of karaoke highlight |
 | `--advanced-text` | `False` | Enable kinetic typography (word scaling & animation) |

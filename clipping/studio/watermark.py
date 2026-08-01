@@ -2,8 +2,8 @@
 clipping.studio.watermark — Watermark Overlay Engine
 
 Modul modular untuk menambahkan watermark pada frame video.
-Mendukung watermark teks (fase 1) dan menyiapkan struktur
-untuk watermark gambar (fase 2).
+Mendukung watermark teks dan watermark gambar (PNG, JPG, JPEG, WEBP)
+dengan auto-scaling, transparansi, dan 9 posisi anchor.
 
 Usage (dipanggil per-frame dari renderer):
     from clipping.studio.watermark import apply_watermark
@@ -81,6 +81,18 @@ def validate_watermark_config(cfg):
             raise ValueError(
                 f"❌ File watermark image tidak ditemukan: {wm_image}"
             )
+        valid_exts = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff")
+        if not wm_image.lower().endswith(valid_exts):
+            raise ValueError(
+                f"❌ Format file watermark tidak didukung: {wm_image}. "
+                f"Format yang didukung: {', '.join(valid_exts)}"
+            )
+
+    scale = getattr(cfg, "watermark_scale", 15)
+    if not (1 <= scale <= 100):
+        raise ValueError(
+            f"❌ --watermark-scale harus antara 1-100, diberikan: {scale}"
+        )
 
 
 # ==============================================================================
@@ -282,26 +294,119 @@ class TextWatermarkRenderer(WatermarkRenderer):
 
 
 # ==============================================================================
-# IMAGE WATERMARK (Fase 2 — Struktur Siap)
+# IMAGE WATERMARK (Fase 2)
 # ==============================================================================
 
 
 class ImageWatermarkRenderer(WatermarkRenderer):
     """
-    Placeholder untuk watermark gambar.
-    Strukturnya sudah siap, implementasi akan ditambahkan di fase 2.
+    Render watermark gambar (PNG, JPG, JPEG, WEBP, dll).
+
+    Fitur:
+    - Memuat gambar watermark dan meng-convert ke RGBA (mendukung transparansi PNG).
+    - Auto-scale berdasarkan --watermark-scale (persentase tinggi frame).
+    - Alpha compositing dengan opacity yang bisa diatur.
+    - Cache per ukuran frame untuk performa per-frame yang optimal.
     """
+
+    DEFAULT_SCALE = 15  # 15% of frame height
 
     def __init__(self, cfg):
         super().__init__(cfg)
         self.image_path = getattr(cfg, "watermark_image", None)
+        self.scale_pct = getattr(cfg, "watermark_scale", self.DEFAULT_SCALE)
+        self._overlay_cache = {}  # Cache per (frame_w, frame_h)
+
+        # Load source image sebagai RGBA saat inisialisasi
+        self._source_rgba = None
+        if self.image_path and os.path.exists(self.image_path):
+            try:
+                img = Image.open(self.image_path)
+                # Convert ke RGBA (tambah alpha channel jika tidak ada)
+                self._source_rgba = img.convert("RGBA")
+            except Exception as e:
+                print(f"⚠️ Gagal memuat watermark image: {self.image_path} — {e}")
+                self._source_rgba = None
+
+    def _scale_image(self, source_rgba, target_h):
+        """
+        Skala gambar watermark agar tingginya = scale_pct% dari tinggi frame.
+        Mempertahankan aspect ratio asli gambar.
+
+        Args:
+            source_rgba: PIL Image RGBA source.
+            target_h: Tinggi frame target.
+
+        Returns:
+            PIL Image RGBA yang sudah di-scale.
+        """
+        desired_h = max(8, int(target_h * self.scale_pct / 100.0))
+        src_w, src_h = source_rgba.size
+
+        if src_h <= 0:
+            return source_rgba
+
+        ratio = desired_h / src_h
+        desired_w = max(1, int(src_w * ratio))
+
+        return source_rgba.resize(
+            (desired_w, desired_h), Image.LANCZOS
+        )
 
     def render(self, frame):
         """Apply image watermark ke frame BGR."""
-        raise NotImplementedError(
-            "Watermark gambar belum diimplementasikan. "
-            "Gunakan --text untuk watermark teks."
-        )
+        if self._source_rgba is None:
+            return frame
+
+        frame_h, frame_w = frame.shape[:2]
+        cache_key = (frame_w, frame_h)
+
+        # Gunakan cached overlay jika ukuran frame sama
+        if cache_key in self._overlay_cache:
+            scaled_rgba, x, y = self._overlay_cache[cache_key]
+        else:
+            # Scale image sesuai frame
+            scaled_rgba = self._scale_image(self._source_rgba, frame_h)
+            wm_w, wm_h = scaled_rgba.size
+
+            # Hitung posisi menggunakan base class
+            x, y = self._calculate_position(frame_w, frame_h, wm_w, wm_h)
+
+            self._overlay_cache[cache_key] = (scaled_rgba, x, y)
+
+        # Alpha blend overlay ke frame
+        wm_w, wm_h = scaled_rgba.size
+
+        # Clamp agar tidak keluar batas frame
+        x2 = min(x + wm_w, frame_w)
+        y2 = min(y + wm_h, frame_h)
+        actual_w = x2 - x
+        actual_h = y2 - y
+
+        if actual_w <= 0 or actual_h <= 0:
+            return frame
+
+        # Convert region frame ke PIL RGBA
+        region = frame[y:y2, x:x2]
+        region_pil = Image.fromarray(cv2.cvtColor(region, cv2.COLOR_BGR2RGBA))
+
+        # Crop overlay jika perlu (edge clipping)
+        overlay_crop = scaled_rgba.crop((0, 0, actual_w, actual_h))
+
+        # Apply opacity ke alpha channel
+        if self.opacity < 1.0:
+            r, g, b, a = overlay_crop.split()
+            a = a.point(lambda p: int(p * self.opacity))
+            overlay_crop = Image.merge("RGBA", (r, g, b, a))
+
+        # Composite
+        region_pil = Image.alpha_composite(region_pil, overlay_crop)
+
+        # Convert balik ke BGR dan tulis ke frame
+        result_bgr = cv2.cvtColor(np.array(region_pil), cv2.COLOR_RGBA2BGR)
+        frame[y:y2, x:x2] = result_bgr
+
+        return frame
 
 
 # ==============================================================================

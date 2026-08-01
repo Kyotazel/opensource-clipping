@@ -91,11 +91,12 @@ Complete reference for all command-line arguments. Run `python main.py --help` f
 |---|---|---|
 | `--watermark` | `False` | Enable watermark overlay on rendered clips |
 | `--text` | `None` | Watermark text to overlay (e.g. 'Channel Name') |
-| `--image` | `None` | Path to watermark image (Not implemented yet) |
+| `--image` | `None` | Path to watermark image (PNG with alpha recommended, also supports JPG, JPEG, WEBP) |
 | `--opacity` | `70` | Watermark opacity in percent (1-100) |
 | `--position` | `center-right`| Watermark position (9 anchors: `top-left`, `center-right`, etc.) |
 | `--padding` | `0` | Watermark padding from the nearest edge in pixels |
 | `--watermark-font-size` | `0` | Watermark font size in pixels (0 = auto ~3% frame height) |
+| `--watermark-scale` | `15` | Image watermark height as % of frame height (1-100) |
 
 ---
 
