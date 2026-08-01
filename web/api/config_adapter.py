@@ -64,7 +64,8 @@ def build_config_from_payload(
     """
     env = env_overrides or {}
 
-    base_dir = os.getcwd()
+    # Resolve absolute path to the project root (2 levels up from web/api)
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     outputs_dir = os.path.abspath(os.path.join(base_dir, "outputs", job_id))
     os.makedirs(outputs_dir, exist_ok=True)
     font_dir = os.path.abspath(os.path.join(base_dir, "custom_fonts"))

@@ -8,6 +8,13 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.13.1] - 2026-08-01
+
+### Fixed
+- **Web API Path Resolution**: Fixed a path resolution bug in the FastAPI backend (`os.getcwd()`) that caused 404 errors when downloading or previewing clips. The backend now reliably calculates absolute paths (`OUTPUTS_DIR`, `UPLOAD_DIR`, and `PERSIST_PATH`) relative to the project root, ensuring file serving works perfectly regardless of the working directory the server was launched from.
+
+---
+
 ## [v1.13.0] - 2026-08-01
 
 ### Added

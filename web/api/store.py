@@ -26,7 +26,9 @@ from .models import (
 _lock = threading.Lock()
 _jobs: dict[str, dict] = {}
 
-PERSIST_PATH = os.path.join(os.getcwd(), "outputs", "jobs.json")
+# Resolve absolute path to the project root (2 levels up from web/api)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PERSIST_PATH = os.path.join(PROJECT_ROOT, "outputs", "jobs.json")
 
 
 # ---------------------------------------------------------------------------

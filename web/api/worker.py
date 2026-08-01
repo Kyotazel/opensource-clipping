@@ -77,7 +77,9 @@ def _run_pipeline_sync(job_id: str, payload: dict) -> None:
 
         # If upload file, skip download
         if payload.get("upload_filename"):
-            upload_path = os.path.join(os.getcwd(), "uploads", payload["upload_filename"])
+            # Resolve absolute path to the project root (2 levels up from web/api)
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            upload_path = os.path.join(project_root, "uploads", payload["upload_filename"])
             if not os.path.exists(upload_path):
                 store.set_error(job_id, f"File upload tidak ditemukan: {payload['upload_filename']}")
                 return

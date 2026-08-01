@@ -12,8 +12,11 @@ from fastapi.responses import FileResponse
 
 router = APIRouter(tags=["files"])
 
-UPLOAD_DIR = os.path.join(os.getcwd(), "uploads")
-OUTPUTS_DIR = os.path.join(os.getcwd(), "outputs")
+# Resolve absolute path to the project root (2 levels up from web/api/routes)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
+UPLOAD_DIR = os.path.join(PROJECT_ROOT, "uploads")
+OUTPUTS_DIR = os.path.join(PROJECT_ROOT, "outputs")
 
 # Ensure directories exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
