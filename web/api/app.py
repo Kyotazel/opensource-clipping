@@ -60,7 +60,22 @@ app.include_router(settings.router)
 async def root():
     return {
         "name": "OpenSource Clipping Studio",
-        "version": "1.12.0",
+        "version": "1.13.0",
         "docs": "/docs",
         "health": "/api/health",
     }
+
+import os
+import signal
+import asyncio
+
+@app.post("/api/shutdown")
+async def shutdown_server():
+    """Trigger graceful shutdown of the FastAPI server."""
+    # Send SIGINT to own process to trigger uvicorn graceful shutdown
+    async def _shutdown():
+        await asyncio.sleep(0.5)
+        os.kill(os.getpid(), signal.SIGINT)
+    
+    asyncio.create_task(_shutdown())
+    return {"status": "shutting down", "message": "Server is stopping..."}

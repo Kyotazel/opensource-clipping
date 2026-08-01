@@ -8,6 +8,14 @@ All notable changes to the **OpenSource Clipping** project will be documented in
 - **Patch (x.y.Z)**: Incremented for backward-compatible bug fixes or minor patches.
 
 
+## [v1.13.4] - 2026-08-01
+
+### Added
+- **Web Studio Backend Shutdown**: Added a dedicated `POST /api/shutdown` endpoint to gracefully terminate the Uvicorn server in Kaggle/Colab environments.
+- **Stop Server UI**: Added a "Stop Server" button directly into the main Studio sidebar (visible when connected) and the Connect Modal, allowing users to safely shut down the remote Kaggle notebook instance directly from the static frontend.
+
+---
+
 ## [v1.13.3] - 2026-08-01
 
 ### Fixed

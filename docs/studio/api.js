@@ -111,6 +111,11 @@ const StudioAPI = (() => {
     return eventSource;
   }
 
+  // ---- Server Shutdown ----
+  async function shutdownServer() {
+    return request('/api/shutdown', { method: 'POST' });
+  }
+
   // Public API
   return {
     getBackendUrl,
@@ -125,6 +130,7 @@ const StudioAPI = (() => {
     fetchSettings,
     updateSettings,
     createSSE,
+    shutdownServer,
   };
 })();
 
@@ -190,6 +196,7 @@ function updateConnectIndicator() {
   const dot = document.getElementById('connect-dot');
   const label = document.getElementById('connect-label');
   const btn = document.getElementById('connect-btn');
+  const stopBtn = document.getElementById('sidebar-stop-btn');
   if (!dot || !label) return;
 
   if (StudioAPI.isConfigured()) {
@@ -201,10 +208,12 @@ function updateConnectIndicator() {
       label.textContent = 'Connected';
     }
     if (btn) btn.textContent = 'Change';
+    if (stopBtn) stopBtn.classList.remove('hidden');
   } else {
     dot.className = 'connect-dot offline';
     label.textContent = 'Not connected';
     if (btn) btn.textContent = 'Connect';
+    if (stopBtn) stopBtn.classList.add('hidden');
   }
 }
 
@@ -241,8 +250,11 @@ function showConnectModal() {
           Test & Connect
         </button>
         ${currentUrl ? `
-          <button onclick="disconnectBackend()" class="px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm">
+          <button onclick="disconnectBackend()" title="Disconnect UI from backend" class="px-3 py-2.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-sm">
             Disconnect
+          </button>
+          <button id="stop-server-btn" onclick="stopBackendServer()" title="Shut down the backend process" class="px-3 py-2.5 rounded-xl border border-red-500 bg-red-600 text-white font-medium hover:bg-red-700 transition-colors text-sm">
+            Stop Server
           </button>
         ` : ''}
       </div>
@@ -304,6 +316,43 @@ function disconnectBackend() {
   StudioAPI.clearBackendUrl();
   updateConnectIndicator();
   closeConnectModal();
+}
+
+async function stopBackendServer() {
+  const btn = document.getElementById('stop-server-btn');
+  const msg = document.getElementById('connect-status-msg');
+
+  if (!confirm('Are you sure you want to STOP the Kaggle backend server? You will have to restart the notebook cell manually.')) {
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner spinner-light"></span> Stopping...';
+  }
+
+  if (msg) {
+    msg.className = 'text-sm mb-4 text-slate-500 dark:text-slate-400';
+    msg.textContent = '⏳ Sending shutdown signal...';
+    msg.classList.remove('hidden');
+  }
+
+  try {
+    await StudioAPI.shutdownServer();
+    if (msg) {
+      msg.className = 'text-sm mb-4 text-emerald-600 dark:text-emerald-400';
+      msg.textContent = '✅ Server stopped successfully.';
+    }
+  } catch (err) {
+    // A fetch error is expected if the server dies immediately
+    console.log('Server disconnected during shutdown:', err);
+  } finally {
+    setTimeout(() => {
+      StudioAPI.clearBackendUrl();
+      updateConnectIndicator();
+      closeConnectModal();
+    }, 1500);
+  }
 }
 
 // Initialize on page load
