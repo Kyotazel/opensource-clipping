@@ -1,6 +1,7 @@
 yt-dlp
 faster-whisper
 google-genai
+numpy<2.0.0
 mediapipe
 opencv-python
 Pillow
