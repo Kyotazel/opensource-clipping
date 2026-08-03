@@ -696,6 +696,8 @@ bash cleanup.sh
 
 Feel free for contributing, support, fork, likes, etc. Any feedback is greatly appreciated to keep this open-source project growing!
 
+Support this project on Saweria: [https://saweria.co/NaufalRizqullah17](https://saweria.co/NaufalRizqullah17)
+
 ## 📄 License
 
 Open source. Feel free to use, modify, and distribute.

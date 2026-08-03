@@ -762,6 +762,8 @@ bash cleanup.sh
 
 Feel free for contributing, support, fork, likes, dll. Dukungan Anda sangat berarti untuk terus mengembangkan proyek open-source ini.
 
+Dukung proyek ini melalui Saweria: [https://saweria.co/NaufalRizqullah17](https://saweria.co/NaufalRizqullah17)
+
 ## 📄 Lisensi
 
 Open source. Bebas digunakan, dimodifikasi, dan didistribusikan.
