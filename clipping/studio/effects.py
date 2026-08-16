@@ -88,6 +88,7 @@ def siapkan_glitch_video(rasio, cfg, video_encoder, source_h=1080, custom_dims=N
                         "format": "best[ext=mp4]",
                         "outtmpl": glitch_raw,
                         "quiet": True,
+                        "extractor_args": {"youtube": ["player_client=android,web"]},
                     }
                 ).download([url_glitch])
                 use_downloaded = True

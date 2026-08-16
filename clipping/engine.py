@@ -166,6 +166,7 @@ def download_video(
             "merge_output_format": "mp4",
             "remote_components": ["ejs:github"],
             "progress_hooks": [_ydl_progress_hook],
+            "extractor_args": {"youtube": ["player_client=android,web"]},
         }
     else:
         # TikTok / Instagram: ensure video and audio are merged

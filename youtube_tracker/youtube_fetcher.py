@@ -237,6 +237,7 @@ class YouTubeFetcher:
             "no_warnings": True,
             "extract_flat": False,
             "ignoreerrors": False,
+            "extractor_args": {"youtube": ["player_client=android,web"]},
         }
 
         last_error = None
@@ -286,6 +287,7 @@ class YouTubeFetcher:
             "ignoreerrors": True,
             "playlist_items": "1:",
             "lazy_playlist": False,
+            "extractor_args": {"youtube": ["player_client=android,web"]},
         }
         
 
@@ -322,6 +324,7 @@ class YouTubeFetcher:
             "no_warnings": True,
             "extract_flat": False,
             "ignoreerrors": False,
+            "extractor_args": {"youtube": ["player_client=android,web"]},
         }
 
         for i, entry in enumerate(entries):

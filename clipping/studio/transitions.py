@@ -159,6 +159,7 @@ def download_transition_raw(entry: dict, cfg) -> str | None:
                 "outtmpl": raw_path,
                 "quiet": True,
                 "no_warnings": True,
+                "extractor_args": {"youtube": ["player_client=android,web"]},
             }
         ).download([entry["url"]])
     except Exception as e:
