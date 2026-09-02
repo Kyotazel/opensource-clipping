@@ -905,8 +905,12 @@ def analyze_with_nvidia(transkrip_lengkap: str, cfg) -> list[dict]:
     if not cfg.api_key_nvidia:
         raise ValueError("NVIDIA_API_KEY tidak ditemukan di environment.")
 
+    # Base URL is configurable so any OpenAI-compatible endpoint can be used:
+    # NVIDIA NIM (default) or e.g. OpenRouter
+    # (NVIDIA_BASE_URL=https://openrouter.ai/api/v1 + an sk-or-v1-... key in NVIDIA_API_KEY).
+    nvidia_base_url = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1").rstrip("/")
     client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
+        base_url=nvidia_base_url,
         api_key=cfg.api_key_nvidia
     )
     
@@ -1061,7 +1065,7 @@ def analyze_with_nvidia(transkrip_lengkap: str, cfg) -> list[dict]:
         }
     }
 
-    completion = client.chat.completions.create(
+    completion_kwargs = dict(
         model=cfg.nvidia_model,
         messages=[
             {"role": "system", "content": "You are a professional video editor and strategist. Return JSON only. Follow the provided JSON schema exactly."},
@@ -1070,13 +1074,20 @@ def analyze_with_nvidia(transkrip_lengkap: str, cfg) -> list[dict]:
         temperature=0.5,
         top_p=1,
         max_tokens=16384,
-        extra_body={
+    )
+    # NVIDIA NIM supports Guided JSON via the nvext extension; other
+    # OpenAI-compatible endpoints (e.g. OpenRouter via NVIDIA_BASE_URL) don't
+    # accept it, so it's only sent when talking to NVIDIA. Everything else
+    # relies on the "Return JSON only" prompt + the JSON unwrapping below.
+    if "nvidia.com" in nvidia_base_url:
+        completion_kwargs["extra_body"] = {
             "chat_template_kwargs": {"thinking": False},
             "nvext": {
                 "guided_json": clips_schema
             }
         }
-    )
+
+    completion = client.chat.completions.create(**completion_kwargs)
     
     content = completion.choices[0].message.content
     
