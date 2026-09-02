@@ -348,8 +348,8 @@ def transcribe_video(
     video_path: str,
     max_words_per_subtitle: int = 5,
     model_size: str = "large-v3",
-    device: str = "cuda",
-    compute_type: str = "float16",
+    device: str = "auto",
+    compute_type: str = "",
 ) -> tuple[str, list[dict]]:
     """
     Transcribe *video_path* using Faster-Whisper.
@@ -371,7 +371,25 @@ def transcribe_video(
         " — unduhan pertama kali bisa memakan waktu...",
         flush=True,
     )
-    model = WhisperModel(model_size, device=device, compute_type=compute_type)
+    # Resolve device & compute type: CPU-only servers must not use float16.
+    if device == "auto":
+        try:
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        except Exception:
+            device = "cpu"
+    if not compute_type:
+        compute_type = "float16" if device == "cuda" else "int8"
+    cpu_threads = int(os.environ.get("WHISPER_CPU_THREADS", "0") or 0)
+    model_kwargs = {}
+    if cpu_threads > 0:
+        model_kwargs["cpu_threads"] = cpu_threads
+    model = WhisperModel(
+        model_size,
+        device=device,
+        compute_type=compute_type,
+        **model_kwargs,
+    )
 
     print("      ⏳ Mendekode audio & mengekstrak fitur (belum ada output)...", flush=True)
     segments, info = model.transcribe(video_path, beam_size=5, word_timestamps=True)

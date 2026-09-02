@@ -139,10 +139,12 @@ BGM_MODE = "ducking"  # 'ducking' = sidechain compress, 'background' = constant 
 BGM_MOODS = ["chill", "epic", "sad", "upbeat", "suspense"]
 BGM_DIR = os.path.abspath(os.path.join(BASE_DIR, "assets", "bgm"))
 
-# Whisper
-WHISPER_MODEL = "large-v3"
-WHISPER_DEVICE = "cuda"
-WHISPER_COMPUTE_TYPE = "float16"
+# Whisper (env-sa-port: WHISPER_MODEL / WHISPER_DEVICE / WHISPER_COMPUTE_TYPE /
+# WHISPER_CPU_THREADS). Default device "auto": CPU-only servers must not use
+# float16 — engine falls back to int8 automatically.
+WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "large-v3")
+WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "auto")
+WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "")
 DOWNLOAD_SOURCE_HEIGHT = "max"
 VIDEO_QUALITY_CQ = 23
 VIDEO_QUALITY_CRF = 20
