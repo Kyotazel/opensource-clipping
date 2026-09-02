@@ -1305,8 +1305,21 @@ def analyze_with_nvidia(transkrip_lengkap: str, cfg) -> list[dict]:
         }
 
     completion = client.chat.completions.create(**completion_kwargs)
-    
-    content = completion.choices[0].message.content
+
+    msg = completion.choices[0].message
+    content = getattr(msg, "content", None)
+    if content is None:
+        # Reasoning models (e.g. DeepSeek v4 pro) sometimes return the text in
+        # reasoning_content / reasoning instead of content.
+        content = getattr(msg, "reasoning_content", None)
+    if content is None:
+        extra = getattr(msg, "model_extra", None) or {}
+        content = extra.get("reasoning") or extra.get("reasoning_content")
+    if content is None:
+        raise RuntimeError(
+            "Analisis NVIDIA: provider mengembalikan content kosong. "
+            "Coba ganti NVIDIA_MODEL ke model non-reasoning (deepseek/deepseek-v4-flash)."
+        )
     
     if "```" in content:
         content = re.sub(r"```(json)?", "", content).strip()
