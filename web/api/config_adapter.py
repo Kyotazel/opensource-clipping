@@ -124,8 +124,15 @@ def build_config_from_payload(
         file_yolo_model=os.path.abspath(
             os.path.join(base_dir, f"face_yolov{yolo_size}.pt")
         ),
-        # API keys — prefer env_overrides, then os.environ
-        api_key_gemini=env.get("GOOGLE_API_KEY", os.environ.get("GOOGLE_API_KEY", "")),
+        # API keys — prefer env_overrides, then os.environ.
+        # A placeholder/empty Gemini key is treated as absent so the worker
+        # never burns a run on an API_KEY_INVALID 400 from Google.
+        api_key_gemini=(
+            ""
+            if not (_k := env.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_API_KEY", ""))
+            or "your-gemini" in _k.lower()
+            else _k
+        ),
         hf_token=env.get("HF_TOKEN", os.environ.get("HF_TOKEN", "")),
         pexels_api_key=env.get("PEXELS_API_KEY", os.environ.get("PEXELS_API_KEY", "")),
         # Pengaturan utama
@@ -195,7 +202,10 @@ def build_config_from_payload(
         # AI
         ai_provider=ai_provider,
         api_key_nvidia=env.get("NVIDIA_API_KEY", os.environ.get("NVIDIA_API_KEY", "")),
-        nvidia_model=payload.get("nvidia_model", "deepseek-ai/deepseek-v4-pro"),
+        nvidia_model=payload.get(
+            "nvidia_model",
+            os.environ.get("NVIDIA_MODEL", "deepseek/deepseek-v4-pro"),
+        ),
         gemini_model=payload.get("gemini_model", "gemini-3-flash-preview"),
         gemini_fallback_model=payload.get("gemini_fallback_model", GEMINI_FALLBACK_MODEL),
         load_gemini_json=payload.get("load_gemini_json", False),

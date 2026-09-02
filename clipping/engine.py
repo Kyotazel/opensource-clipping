@@ -1167,18 +1167,28 @@ def analyze_with_nvidia(transkrip_lengkap: str, cfg) -> list[dict]:
 
 
 def analyze_with_ai(transkrip_lengkap: str, cfg) -> list[dict]:
-    """Dispatcher for AI analysis based on provider."""
+    """Dispatcher for AI analysis based on provider (fail-fast, no silent
+    fallback into a broken Gemini key)."""
     provider = getattr(cfg, "ai_provider", "gemini")
-    
+    nvidia_key = (getattr(cfg, "api_key_nvidia", "") or "").strip()
+    gemini_key = (getattr(cfg, "api_key_gemini", "") or "").strip()
+
     if provider == "nvidia":
-        if not cfg.api_key_nvidia:
-            print("⚠️ NVIDIA_API_KEY tidak ditemukan! Mencoba fallback ke Gemini...")
-        else:
-            try:
-                return analyze_with_nvidia(transkrip_lengkap, cfg)
-            except Exception as e:
-                print(f"⚠️ NVIDIA API gagal: {e}. Fallback ke Gemini...")
-    
+        if not nvidia_key:
+            raise RuntimeError(
+                "ai_provider=nvidia tapi NVIDIA_API_KEY kosong — isi via Settings "
+                "atau di .env (NVIDIA_API_KEY + NVIDIA_BASE_URL=https://openrouter.ai/api/v1)."
+            )
+        try:
+            return analyze_with_nvidia(transkrip_lengkap, cfg)
+        except Exception as e:
+            print(f"⚠️ NVIDIA API gagal: {e}. Mencoba fallback ke Gemini...")
+
+    if not gemini_key:
+        raise RuntimeError(
+            "Tidak ada API key AI yang valid untuk analisis: "
+            "NVIDIA_API_KEY (OpenRouter) atau GOOGLE_API_KEY (Gemini) wajib diisi."
+        )
     return analyze_with_gemini(transkrip_lengkap, cfg)
 
 
