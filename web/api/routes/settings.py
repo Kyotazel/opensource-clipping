@@ -58,8 +58,8 @@ async def get_settings() -> SettingsResponse:
         default_clips=int(env.get("DEFAULT_CLIPS", "7")),
         default_ratio=env.get("DEFAULT_RATIO", "9:16"),
         default_font_style=env.get("DEFAULT_FONT_STYLE", "HORMOZI"),
-        default_whisper_model=env.get("DEFAULT_WHISPER_MODEL", "large-v3"),
-        default_whisper_device=env.get("DEFAULT_WHISPER_DEVICE", "cuda"),
+        default_whisper_model=env.get("DEFAULT_WHISPER_MODEL", "small"),
+        default_whisper_device=env.get("DEFAULT_WHISPER_DEVICE", "auto"),
         default_ai_provider=env.get("DEFAULT_AI_PROVIDER", "gemini"),
         gpu_available=_check_gpu(),
     )

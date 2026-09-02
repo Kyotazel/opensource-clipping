@@ -104,9 +104,9 @@ class JobCreateRequest(BaseModel):
     font_style: FontStyle = FontStyle.HORMOZI
 
     # Whisper
-    whisper_model: str = "large-v3"
-    whisper_device: WhisperDevice = WhisperDevice.CUDA
-    whisper_compute_type: str = "float16"
+    whisper_model: str = "small"
+    whisper_device: WhisperDevice = WhisperDevice.AUTO
+    whisper_compute_type: str = ""
     use_dlp_subs: bool = False
 
     # AI
@@ -202,8 +202,8 @@ class SettingsResponse(BaseModel):
     default_clips: int = 7
     default_ratio: str = "9:16"
     default_font_style: str = "HORMOZI"
-    default_whisper_model: str = "large-v3"
-    default_whisper_device: str = "cuda"
+    default_whisper_model: str = "small"
+    default_whisper_device: str = "auto"
     default_ai_provider: str = "gemini"
     gpu_available: bool = False
 

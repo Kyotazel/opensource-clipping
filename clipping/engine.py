@@ -407,6 +407,12 @@ def transcribe_video(
             device = "cuda" if torch.cuda.is_available() else "cpu"
         except Exception:
             device = "cpu"
+    if device == "cpu" and compute_type in ("float16", "fp16"):
+        print(
+            "      ⚠️ float16 tidak didukung di CPU — otomatis beralih ke int8.",
+            flush=True,
+        )
+        compute_type = "int8"
     if not compute_type:
         compute_type = "float16" if device == "cuda" else "int8"
     cpu_threads = int(os.environ.get("WHISPER_CPU_THREADS", "0") or 0)
