@@ -142,7 +142,7 @@ BGM_DIR = os.path.abspath(os.path.join(BASE_DIR, "assets", "bgm"))
 # Whisper (env-sa-port: WHISPER_MODEL / WHISPER_DEVICE / WHISPER_COMPUTE_TYPE /
 # WHISPER_CPU_THREADS). Default device "auto": CPU-only servers must not use
 # float16 — engine falls back to int8 automatically.
-WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "large-v3")
+WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "small")
 WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "auto")
 WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "")
 DOWNLOAD_SOURCE_HEIGHT = "max"

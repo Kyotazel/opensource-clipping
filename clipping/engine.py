@@ -4,9 +4,11 @@ clipping.engine — Download, Transcription & Gemini AI Analysis
 Maps to Cell 2 (The Engine) of the notebook.
 """
 
+import hashlib
 import json
 import os
 import re
+import shutil
 import time
 
 from yt_dlp import YoutubeDL
@@ -141,6 +143,21 @@ def download_video(
     uses_youtube_format = source_platform == "youtube"
 
     print(f"[1/3] Mendownload video dari {platform_label}...")
+
+    # --- Download cache: the exact same URL is never re-downloaded ---
+    download_cache_dir = os.environ.get(
+        "DOWNLOAD_CACHE_DIR", os.path.abspath("downloads_cache")
+    )
+    cache_key = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
+    cache_path = os.path.join(download_cache_dir, f"{cache_key}.mp4")
+    if os.path.exists(cache_path):
+        print(
+            f"      ♻️ Video {platform_label} ditemukan di cache — skip download.",
+            flush=True,
+        )
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        shutil.copy2(cache_path, output_path)
+        return
     if download_source_height == "max":
         print("      🎯 Source quality: highest available", flush=True)
     else:
@@ -154,6 +171,11 @@ def download_video(
                 f"❌ Download dari Google Drive gagal — file tidak ditemukan di {output_path}"
             )
         print(f"      ✅ Video berhasil didownload dari Google Drive.", flush=True)
+        try:
+            os.makedirs(download_cache_dir, exist_ok=True)
+            shutil.copy2(output_path, cache_path)
+        except Exception:
+            pass
         return
 
     # --- Build yt-dlp options per platform ---
@@ -227,6 +249,13 @@ def download_video(
             f"❌ Download dari {platform_label} gagal — file video tidak ditemukan di {output_path}.\n"
             "      Pastikan URL valid dan bisa diakses secara publik."
         )
+
+    # --- Store into cache for future runs of the same URL ---
+    try:
+        os.makedirs(download_cache_dir, exist_ok=True)
+        shutil.copy2(output_path, cache_path)
+    except Exception as e:
+        print(f"      ⚠️ Gagal menyimpan cache: {e}", flush=True)
 
 
 # ==============================================================================
