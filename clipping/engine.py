@@ -534,21 +534,27 @@ def transcribe_video(
     # Activated by WHISPER_API_MODEL, e.g. openai/whisper-large-v3-turbo.
     api_model = os.environ.get("WHISPER_API_MODEL", "")
     if api_model:
-        print(
-            f"      🎙️  Transkripsi via API: {api_model}"
-            f" (chunk {os.environ.get('WHISPER_API_CHUNK_SECONDS', '600')}s)",
-            flush=True,
-        )
-        return transcribe_video_api(
-            video_path,
-            max_words_per_subtitle=max_words_per_subtitle,
-            model=api_model,
-            api_key=os.environ.get("WHISPER_API_KEY", None),
-            base_url=os.environ.get(
-                "WHISPER_API_BASE_URL", "https://openrouter.ai/api/v1"
-            ),
-            chunk_seconds=int(os.environ.get("WHISPER_API_CHUNK_SECONDS", "600")),
-        )
+        try:
+            print(
+                f"      🎙️  Transkripsi via API: {api_model}"
+                f" (chunk {os.environ.get('WHISPER_API_CHUNK_SECONDS', '600')}s)",
+                flush=True,
+            )
+            return transcribe_video_api(
+                video_path,
+                max_words_per_subtitle=max_words_per_subtitle,
+                model=api_model,
+                api_key=os.environ.get("WHISPER_API_KEY", None),
+                base_url=os.environ.get(
+                    "WHISPER_API_BASE_URL", "https://openrouter.ai/api/v1"
+                ),
+                chunk_seconds=int(os.environ.get("WHISPER_API_CHUNK_SECONDS", "600")),
+            )
+        except Exception as e:
+            print(
+                f"      ⚠️ Transkripsi API gagal ({e}) — beralih ke Whisper lokal...",
+                flush=True,
+            )
 
     # Langkah-langkah ini berjalan tanpa output di dalam faster-whisper sebelum
     # segmen pertama dihasilkan, jadi kita umumkan tiap fase — kalau tidak, run
