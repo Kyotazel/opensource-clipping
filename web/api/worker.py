@@ -52,8 +52,17 @@ def _run_pipeline_sync(job_id: str, payload: dict) -> None:
             payload, job_id, env_overrides=_settings_env
         )
 
-        # Validate API key
-        if not cfg.api_key_gemini:
+        # Validate API key for the chosen provider (NVIDIA/OpenRouter doesn't
+        # need a Gemini key, and vice versa).
+        provider = getattr(cfg, "ai_provider", "gemini")
+        if provider == "nvidia":
+            if not cfg.api_key_nvidia:
+                store.set_error(
+                    job_id,
+                    "NVIDIA_API_KEY tidak ditemukan. Set via Settings atau .env file.",
+                )
+                return
+        elif not cfg.api_key_gemini:
             store.set_error(
                 job_id,
                 "GOOGLE_API_KEY tidak ditemukan. Set via Settings atau .env file.",
