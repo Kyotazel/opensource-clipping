@@ -154,7 +154,7 @@ RENDER_OUTPUT_HEIGHT = 1080
 
 # AI Provider
 AI_PROVIDER = "gemini"
-NVIDIA_MODEL = "deepseek-ai/deepseek-v4-pro"
+NVIDIA_MODEL = os.environ.get("NVIDIA_MODEL", "deepseek/deepseek-v4-pro")
 GEMINI_MODEL = "gemini-3-flash-preview"
 GEMINI_FALLBACK_MODEL = "gemini-2.5-flash"
 
