@@ -373,6 +373,144 @@ def parse_youtube_json3_subs(json_path: str, max_words_per_subtitle: int = 5) ->
         return "", []
 
 
+def _ffprobe_duration(path: str) -> float:
+    """Duration of *path* via ffprobe (0.0 on failure)."""
+    import subprocess as _sp
+
+    out = _sp.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "csv=p=0", path],
+        capture_output=True, text=True,
+    )
+    try:
+        return float(out.stdout.strip())
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def transcribe_video_api(
+    video_path: str,
+    max_words_per_subtitle: int = 5,
+    model: str = "openai/whisper-large-v3-turbo",
+    api_key: str | None = None,
+    base_url: str = "https://openrouter.ai/api/v1",
+    chunk_seconds: int = 600,
+) -> tuple[str, list[dict]]:
+    """Transcribe via an OpenAI-compatible audio API (e.g. OpenRouter).
+
+    Long audio is split into *chunk_seconds* pieces so we stay under the
+    provider file/duration caps. Word-level timestamps are requested; when the
+    provider returns none, a segment-level fallback is built instead.
+    Returns the same (transkrip_lengkap, data_segmen) shape as local Whisper.
+    """
+    import tempfile
+    import subprocess as _sp
+    import shutil as _sh
+    from openai import OpenAI
+
+    api_key = api_key or os.environ.get("WHISPER_API_KEY", "") or os.environ.get("NVIDIA_API_KEY", "")
+    if not api_key:
+        raise RuntimeError("WHISPER_API_KEY / NVIDIA_API_KEY kosong — tidak bisa transkripsi API.")
+
+    client = OpenAI(base_url=base_url, api_key=api_key)
+
+    tmpdir = tempfile.mkdtemp(prefix="osc_whisper_")
+    try:
+        pattern = os.path.join(tmpdir, "chunk_%03d.mp3")
+        print(
+            f"      🎛️  Ekstrak audio & pecah {chunk_seconds}s per chunk...",
+            flush=True,
+        )
+        _sp.run(
+            [
+                "ffmpeg", "-y", "-i", video_path,
+                "-vn", "-ac", "1", "-ar", "16000",
+                "-c:a", "libmp3lame", "-b:a", "64k",
+                "-f", "segment", "-segment_time", str(chunk_seconds),
+                "-reset_timestamps", "1", pattern,
+            ],
+            check=True, capture_output=True,
+        )
+        chunks = sorted(
+            f for f in os.listdir(tmpdir) if f.startswith("chunk_")
+        )
+        if not chunks:
+            raise RuntimeError("ffmpeg gagal mengekstrak audio untuk transkripsi API.")
+
+        transkrip_lengkap = ""
+        data_segmen: list[dict] = []
+        chunk_start = 0.0
+
+        for idx, name in enumerate(chunks):
+            path = os.path.join(tmpdir, name)
+            print(
+                f"      ⏳ Transcribe API chunk {idx + 1}/{len(chunks)}...",
+                flush=True,
+            )
+            with open(path, "rb") as f:
+                try:
+                    resp = client.audio.transcriptions.create(
+                        model=model, file=f,
+                        response_format="json",
+                        timestamp_granularities=["word"],
+                    )
+                except Exception:
+                    with open(path, "rb") as f2:
+                        resp = client.audio.transcriptions.create(
+                            model=model, file=f2, response_format="json"
+                        )
+
+            # Collect word-level timings (chunk-relative), then offset them.
+            words = list(getattr(resp, "words", None) or [])
+            if not words:
+                for s in (getattr(resp, "segments", None) or []):
+                    for w in (getattr(s, "words", None) or []):
+                        words.append(w)
+
+            if words:
+                chunk_words: list[dict] = []
+                first_start = 0.0
+                for i, w in enumerate(words):
+                    ws = chunk_start + float(getattr(w, "start", 0.0) or 0.0)
+                    we = chunk_start + float(getattr(w, "end", 0.0) or 0.0)
+                    if not chunk_words:
+                        first_start = ws
+                    chunk_words.append({
+                        "word": (getattr(w, "word", "") or "").strip(),
+                        "start": ws,
+                        "end": we,
+                    })
+                    if len(chunk_words) >= max_words_per_subtitle or i == len(words) - 1:
+                        data_segmen.append({
+                            "start": first_start,
+                            "end": we,
+                            "words": chunk_words,
+                        })
+                        chunk_words = []
+            else:
+                # Segment-level fallback (no word timestamps).
+                for s in (getattr(resp, "segments", None) or []):
+                    ss = chunk_start + float(getattr(s, "start", 0.0) or 0.0)
+                    se = chunk_start + float(getattr(s, "end", 0.0) or 0.0)
+                    data_segmen.append({
+                        "start": ss,
+                        "end": se,
+                        "words": [{"word": (getattr(s, "text", "") or "").strip(),
+                                   "start": ss, "end": se}],
+                    })
+
+            chunk_start += _ffprobe_duration(path) or chunk_seconds
+
+        for seg in data_segmen:
+            text = " ".join(w["word"] for w in seg.get("words", []))
+            transkrip_lengkap += f"[{seg['start']:.1f} - {seg['end']:.1f}] {text}\n"
+
+        print(f"      ✅ Transkripsi API selesai ({len(data_segmen)} segmen).", flush=True)
+        return transkrip_lengkap, data_segmen
+    finally:
+        _sh.rmtree(tmpdir, ignore_errors=True)
+
+
 def transcribe_video(
     video_path: str,
     max_words_per_subtitle: int = 5,
@@ -391,6 +529,26 @@ def transcribe_video(
         Word-level segments grouped by *max_words_per_subtitle*.
     """
     print("[2/3] Memulai transkripsi dengan Faster-Whisper (Level Per-Kata)...")
+
+    # --- API transcription path (OpenRouter / OpenAI-compatible) ---
+    # Activated by WHISPER_API_MODEL, e.g. openai/whisper-large-v3-turbo.
+    api_model = os.environ.get("WHISPER_API_MODEL", "")
+    if api_model:
+        print(
+            f"      🎙️  Transkripsi via API: {api_model}"
+            f" (chunk {os.environ.get('WHISPER_API_CHUNK_SECONDS', '600')}s)",
+            flush=True,
+        )
+        return transcribe_video_api(
+            video_path,
+            max_words_per_subtitle=max_words_per_subtitle,
+            model=api_model,
+            api_key=os.environ.get("WHISPER_API_KEY", None),
+            base_url=os.environ.get(
+                "WHISPER_API_BASE_URL", "https://openrouter.ai/api/v1"
+            ),
+            chunk_seconds=int(os.environ.get("WHISPER_API_CHUNK_SECONDS", "600")),
+        )
 
     # Langkah-langkah ini berjalan tanpa output di dalam faster-whisper sebelum
     # segmen pertama dihasilkan, jadi kita umumkan tiap fase — kalau tidak, run
