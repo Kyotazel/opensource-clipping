@@ -6,10 +6,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
+import tempfile
+import zipfile
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse, StreamingResponse
 
 from ..models import (
     JobCreateRequest,
@@ -20,6 +23,8 @@ from ..models import (
 )
 from .. import store
 from .. import worker
+from ..clip_zip import clip_files_for_zip
+from .files import OUTPUTS_DIR
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -111,6 +116,46 @@ async def get_job(job_id: str) -> JobResponse:
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
     return _job_to_response(job)
+
+
+@router.get("/{job_id}/download-all")
+async def download_all_clips(job_id: str, background_tasks: BackgroundTasks):
+    """Zip every rendered clip for the job into a single download."""
+    job = store.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    files = clip_files_for_zip(OUTPUTS_DIR, job_id, job.get("clips") or [])
+    if not files:
+        raise HTTPException(status_code=404, detail="No clip files found for this job")
+
+    tmp = tempfile.NamedTemporaryFile(prefix="osc_clips_", suffix=".zip", delete=False)
+    tmp_path = tmp.name
+    tmp.close()
+    try:
+        with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_STORED) as zf:
+            for path, arcname in files:
+                zf.write(path, arcname)
+    except Exception:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        raise
+
+    background_tasks.add_task(_cleanup_temp_zip, tmp_path)
+    return FileResponse(
+        tmp_path,
+        media_type="application/zip",
+        filename=f"osc-{job_id}-clips.zip",
+    )
+
+
+def _cleanup_temp_zip(path: str) -> None:
+    try:
+        os.remove(path)
+    except OSError:
+        pass
 
 
 @router.delete("/{job_id}")

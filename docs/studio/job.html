@@ -138,9 +138,14 @@
 
                     <!-- Clips Section -->
                     <div id="clips-section" class="hidden mb-8">
-                        <h3 class="font-display font-semibold text-base text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            🎞️ Generated Clips (<span id="clips-count">0</span>)
-                        </h3>
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <h3 class="font-display font-semibold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                                🎞️ Generated Clips (<span id="clips-count">0</span>)
+                            </h3>
+                            <a id="download-all-btn" href="#" download class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download all
+                            </a>
+                        </div>
                         <div id="clips-grid" class="clip-grid"></div>
                     </div>
 
@@ -236,6 +241,10 @@
                 document.getElementById('clips-count').textContent = job.clips.length;
 
                 const baseUrl = StudioAPI.getBackendUrl();
+                const downloadAll = document.getElementById('download-all-btn');
+                if (downloadAll) {
+                    downloadAll.href = `${baseUrl}/api/jobs/${job.id}/download-all`;
+                }
 
                 document.getElementById('clips-grid').innerHTML = job.clips.map((clip, i) => {
                     const downloadUrl = clip.download_url ? `${baseUrl}${clip.download_url}` : '';

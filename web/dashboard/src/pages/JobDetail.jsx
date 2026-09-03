@@ -124,9 +124,18 @@ function JobDetail() {
       {/* Clips */}
       {job.clips && job.clips.length > 0 && (
         <>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>
-            🎞️ Generated Clips ({job.clips.length})
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
+              🎞️ Generated Clips ({job.clips.length})
+            </h3>
+            <a
+              href={`/api/jobs/${job.id}/download-all`}
+              className="btn btn-secondary btn-sm"
+              download
+            >
+              ⬇️ Download all
+            </a>
+          </div>
           <div className="clip-grid">
             {job.clips.map((clip, i) => (
               <div key={i} className="clip-card">
