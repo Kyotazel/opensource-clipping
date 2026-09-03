@@ -14,6 +14,13 @@ import time
 from yt_dlp import YoutubeDL
 from faster_whisper import WhisperModel
 
+from clipping.stt import (
+    format_transkrip,
+    segments_from_stt_response,
+    transcribe_chunk_via_api,
+    transkrip_has_text,
+)
+
 
 # ==============================================================================
 # TAHAP 1: DOWNLOAD VIDEO
@@ -399,9 +406,12 @@ def transcribe_video_api(
     """Transcribe via an OpenAI-compatible audio API (e.g. OpenRouter).
 
     Long audio is split into *chunk_seconds* pieces so we stay under the
-    provider file/duration caps. Word-level timestamps are requested; when the
-    provider returns none, a segment-level fallback is built instead.
+    provider file/duration caps. Word-level timestamps require
+    ``response_format="verbose_json"``; when the provider returns none, a
+    segment-level or full-text fallback is built instead.
     Returns the same (transkrip_lengkap, data_segmen) shape as local Whisper.
+    Raises RuntimeError if the API returns no usable text, so the caller
+    can fall back to local Whisper instead of sending an empty prompt.
     """
     import tempfile
     import subprocess as _sp
@@ -437,7 +447,6 @@ def transcribe_video_api(
         if not chunks:
             raise RuntimeError("ffmpeg gagal mengekstrak audio untuk transkripsi API.")
 
-        transkrip_lengkap = ""
         data_segmen: list[dict] = []
         chunk_start = 0.0
 
@@ -447,65 +456,21 @@ def transcribe_video_api(
                 f"      ⏳ Transcribe API chunk {idx + 1}/{len(chunks)}...",
                 flush=True,
             )
+            duration = _ffprobe_duration(path) or float(chunk_seconds)
             with open(path, "rb") as f:
-                try:
-                    resp = client.audio.transcriptions.create(
-                        model=model, file=f,
-                        response_format="json",
-                        timestamp_granularities=["word"],
-                    )
-                except Exception:
-                    with open(path, "rb") as f2:
-                        resp = client.audio.transcriptions.create(
-                            model=model, file=f2, response_format="json"
-                        )
+                resp = transcribe_chunk_via_api(client, f, model)
+            data_segmen.extend(segments_from_stt_response(
+                resp, chunk_start, duration, max_words_per_subtitle
+            ))
+            chunk_start += duration
 
-            # Collect word-level timings (chunk-relative), then offset them.
-            words = list(getattr(resp, "words", None) or [])
-            if not words:
-                for s in (getattr(resp, "segments", None) or []):
-                    for w in (getattr(s, "words", None) or []):
-                        words.append(w)
-
-            if words:
-                chunk_words: list[dict] = []
-                first_start = 0.0
-                for i, w in enumerate(words):
-                    ws = chunk_start + float(getattr(w, "start", 0.0) or 0.0)
-                    we = chunk_start + float(getattr(w, "end", 0.0) or 0.0)
-                    if not chunk_words:
-                        first_start = ws
-                    chunk_words.append({
-                        "word": (getattr(w, "word", "") or "").strip(),
-                        "start": ws,
-                        "end": we,
-                    })
-                    if len(chunk_words) >= max_words_per_subtitle or i == len(words) - 1:
-                        data_segmen.append({
-                            "start": first_start,
-                            "end": we,
-                            "words": chunk_words,
-                        })
-                        chunk_words = []
-            else:
-                # Segment-level fallback (no word timestamps).
-                for s in (getattr(resp, "segments", None) or []):
-                    ss = chunk_start + float(getattr(s, "start", 0.0) or 0.0)
-                    se = chunk_start + float(getattr(s, "end", 0.0) or 0.0)
-                    data_segmen.append({
-                        "start": ss,
-                        "end": se,
-                        "words": [{"word": (getattr(s, "text", "") or "").strip(),
-                                   "start": ss, "end": se}],
-                    })
-
-            chunk_start += _ffprobe_duration(path) or chunk_seconds
-
-        for seg in data_segmen:
-            text = " ".join(w["word"] for w in seg.get("words", []))
-            transkrip_lengkap += f"[{seg['start']:.1f} - {seg['end']:.1f}] {text}\n"
-
+        transkrip_lengkap = format_transkrip(data_segmen)
         print(f"      ✅ Transkripsi API selesai ({len(data_segmen)} segmen).", flush=True)
+        if not data_segmen or not transkrip_has_text(data_segmen):
+            raise RuntimeError(
+                "Transkripsi API tidak menghasilkan teks/segmen — "
+                "akan fallback ke Whisper lokal."
+            )
         return transkrip_lengkap, data_segmen
     finally:
         _sh.rmtree(tmpdir, ignore_errors=True)
