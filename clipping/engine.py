@@ -1268,6 +1268,15 @@ def analyze_with_nvidia(transkrip_lengkap: str, cfg) -> list[dict]:
                 "guided_json": clips_schema
             }
         }
+    else:
+        # GLM-5.3-Flash (and similar) default to max reasoning effort, which
+        # can exhaust max_tokens before JSON is emitted. Keep thinking on but
+        # cheap. OpenRouter maps `reasoning.effort`; GLM also reads
+        # `chat_template_kwargs.reasoning_effort`.
+        completion_kwargs["extra_body"] = {
+            "reasoning": {"effort": "low"},
+            "chat_template_kwargs": {"reasoning_effort": "low"},
+        }
 
     completion = client.chat.completions.create(**completion_kwargs)
 
